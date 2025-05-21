@@ -67,7 +67,7 @@ class QuestionService:
 - 문제 유형: {dto.question_type.value}
 
 출력 형식은 다음과 같습니다. **JSON 배열만 출력하고, 다른 텍스트는 포함하지 마세요.**
-
+글자 꾸미는 마크업 요소 없애.
 - 과목이 수학인 경우, 수식은 LaTeX 형식으로 작성하고 `$`로 감싸 주세요.
 - `"type"`이 `"multiple_choice"`일 경우에만 `"choices"`와 `"correct_answer"` 항목을 포함해 주세요.
 - `"short_answer"` 또는 `"description"` 유형일 경우 `"choices"`와 `"correct_answer"`는 작성하지 마세요.
