@@ -3,6 +3,8 @@ import json
 import re
 from typing import Dict, List, Union, Any
 import google.generativeai as genai
+from dotenv import load_dotenv
+
 from src.application.interfaces.ai_service import AIService
 from src.domain.question.entities.question import (
     Question, MultipleChoiceQuestion, ShortAnswerQuestion, DescriptionQuestion,
@@ -10,11 +12,14 @@ from src.domain.question.entities.question import (
 )
 from src.domain.question.value_objects.question_type import QuestionType
 
+
+
 class GeminiClient(AIService):
     """Gemini AI 클라이언트 구현"""
 
     def __init__(self):
-        api_key = os.getenv("GEMINI_API_KEY", "AIzaSyBB5QlpSxbmtKd78isQlMkoOOnrDoZH518")
+        load_dotenv()
+        api_key = os.getenv("GEMINI_API_KEY", os.getenv("API_KEY"))
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel("gemini-1.5-flash")
 
@@ -167,8 +172,8 @@ class GeminiClient(AIService):
 
 위 질문에 대해 전문가처럼 자세히 답변해주세요.
 만약 subject가 수학이라면 LaTeX형식으로 작성, 수식은 $로 감싸주세요.
-- JSON 형식에 포함되는 문자열에서 백슬래시(\\)가 포함될 경우 반드시 두 번(\\\\)으로 이스케이프 해주세요.
-- 특히 LaTeX 명령어(예: \frac, \\dots 등)는 JSON 파싱 오류를 방지하기 위해 반드시 이스케이프된 상태로 작성해야 합니다.
+- JSON 형식에 포함되는 문자열에서 백슬래시(\\)가 포함될 경우 반드시 (\)으로 이스케이프 해주세요.
+- 특히 LaTeX 명령어(예: frac, dots 등)는 JSON 파싱 오류를 방지하기 위해 반드시 이스케이프된 상태로 작성해야 합니다.
 답변은 다음 형식으로 제공해주세요:
 {{
     "answer": "답변 내용. 줄바꿈할 때는 반드시 그 뒤에 띄어쓰기를 해주세요.",
