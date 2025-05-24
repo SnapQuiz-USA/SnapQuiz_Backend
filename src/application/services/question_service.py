@@ -1,5 +1,4 @@
 from typing import List, Union
-from fastapi import UploadFile
 from src.application.interfaces.ai_service import AIService
 from src.domain.question.entities.question import (
     Question, MultipleChoiceQuestion, ShortAnswerQuestion, DescriptionQuestion,
@@ -7,6 +6,7 @@ from src.domain.question.entities.question import (
 )
 from src.domain.question.value_objects.question_type import QuestionType
 from src.interfaces.api.schemas.question_schemas import QuestionCreateDTO
+from src.utils.faiss import retrieve_top_k_documents
 
 class QuestionService:
     """문제 생성 서비스"""
@@ -16,14 +16,14 @@ class QuestionService:
 
     async def generate_question(
         self,
-        textbook_image: UploadFile,
+        textbook_text: str,
         question_create_dto: QuestionCreateDTO
     ) -> List[Union[MultipleChoiceQuestion, ShortAnswerQuestion, DescriptionQuestion]]:
         """교과서 이미지를 바탕으로 문제 생성"""
         try:
-            image_content = await textbook_image.read()
-            prompt = self._create_prompt_questions(question_create_dto)
-            return await self.ai_service.generate_questions(image_content, prompt)
+            rag_data = retrieve_top_k_documents(textbook_text)
+            prompt = self._create_prompt_questions(question_create_dto, rag_data)
+            return await self.ai_service.generate_questions(prompt)
         except Exception as e:
             raise ValueError(f"문제 생성 실패: {e}")
 
@@ -55,16 +55,18 @@ class QuestionService:
 
     def _create_prompt_questions(
         self,
-        dto: QuestionCreateDTO
+        dto: QuestionCreateDTO,
+        rag_data = List[str]
     ) -> str:
         """문제 생성용 프롬프트"""
         return f"""
-다음은 교과서 이미지입니다. 이 내용을 바탕으로 아래 조건에 맞는 문제들을 JSON 배열 형태로 생성해 주세요.
+다음은 교과서의 내용입니다. 이 내용을 바탕으로 아래 조건에 맞는 문제들을 JSON 배열 형태로 생성해 주세요.
 
 - 과목: {dto.subject}
 - 난이도: {dto.difficulty}
 - 생성할 문제 수: {dto.number_of_questions}
 - 문제 유형: {dto.question_type.value}
+- 참고할 데이터 : {rag_data}
 
 출력 형식은 다음과 같습니다. **JSON 배열만 출력하고, 다른 텍스트는 포함하지 마세요.**
 글자 꾸미는 마크업 요소 없애.

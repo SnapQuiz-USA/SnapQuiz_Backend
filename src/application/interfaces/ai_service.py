@@ -13,7 +13,6 @@ class AIService(ABC):
     @abstractmethod
     async def generate_questions(
         self,
-        image_content: bytes,
         prompt: str
     ) -> List[Union[MultipleChoiceQuestion, ShortAnswerQuestion, DescriptionQuestion]]:
         """이미지를 기반으로 문제를 생성합니다."""
